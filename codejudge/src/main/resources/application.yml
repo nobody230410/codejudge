@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/code_judge?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Shanghai
+    username: root
+    password: fDu037772
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+
+jwt:
+  secret: "MySuperSecretKeyForJwtTokenGenerationMustBeLongEnough1234567890"
+  expiration: 86400000
+
+envoy:
+  url: http://192.168.1.105:4000

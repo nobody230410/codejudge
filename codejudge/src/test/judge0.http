@@ -1,0 +1,58 @@
+### 1. 检查服务状态 (获取版本信息)
+# 验证 Judge0 是否启动
+GET http://localhost:2358/version
+
+### 2. 提交并执行代码 (同步模式)
+# 提交一段 C++ 代码，wait=true 表示等待执行完成再返回结果
+POST http://localhost:2358/submissions?wait=true&base64_encoded=false
+Content-Type: application/json
+
+{
+  "source_code": "#include<stdio.h>\nint main(){\nprintf(\"Hello World\");}",
+  "language_id": 50
+}
+
+### 3. 提交 Python 代码 (带输入)
+# 测试 Python 3，并传入标准输入 (stdin)
+POST http://localhost:2358/submissions?wait=true&base64_encoded=false
+Content-Type: application/json
+
+{
+  "source_code": "print(\"Hello World\")",
+  "language_id": 71
+}
+
+### 4. 测试编译错误
+# 故意提交错误的 C++ 代码，查看 error 信息
+POST http://localhost:2358/submissions?wait=true&base64_encoded=false
+Content-Type: application/json
+
+{
+  "source_code": "int main() { return error_code; }",
+  "language_id": 54
+}
+
+### 5. 测试worker
+GET https://ce.judge0.com/workers
+Content-Type: application/json
+
+[
+  {
+    "queue": "default",
+    "size": 0,
+    "available": 1,
+    "idle": 1,
+    "working": 0,
+    "paused": 0,
+    "failed": 0
+  }
+]
+
+### 6.  测试java
+POST http://localhost:2358/submissions?wait=true
+Content-Type: application/json
+
+{
+  "source_code": "public class Main {    public static void main(String[] args) {        System.out.println(\"Hello World\");    }}",
+  "language_id": 62
+}

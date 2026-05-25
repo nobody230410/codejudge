@@ -1,0 +1,67 @@
+% 主文件中：
+%   \usepackage{graphicx}
+%   \usepackage{float}
+%   \usepackage{pdfpages}
+%   \graphicspath{{figs/sequence/}}
+%   \input{docs/latex/sequence/sequence-pdfpages}
+%   \input{docs/latex/sequence/section-regular}
+
+\subsection{登录认证}
+
+包括用户注册、用户/管理员登录、登出及 Token 签发与失效处理。
+
+\begin{enumerate}
+    \item 用户在登录或注册页面与 Vue 界面交互（填写用户名、密码，选择用户类型等）。前端通过 Axios 封装的 API 调用 \texttt{/api/auth/register} 或 \texttt{/api/auth/login}，此类接口无需携带 JWT；登出时调用 \texttt{/api/auth/logout}，须在请求头中携带已签发的 JWT。
+
+    \item 请求进入 Spring Boot 后，由 Spring Security 按路径规则处理：注册与登录接口匿名放行；登出接口要求已认证。登录请求由 \texttt{AuthController} 接收后委托 \texttt{AuthService}，经 \texttt{AuthenticationManager} 与 \texttt{CustomUserDetailsService} 按 \texttt{userType} 从数据库加载普通用户或管理员账号并校验密码。
+
+    \item \texttt{AuthService} 负责认证编排：注册时查重用户名、使用 \texttt{PasswordEncoder} 加密后写入数据库；登录成功后调用 \texttt{TokenProvider} 生成 JWT，并组装 \texttt{LoginResponse}（含 token、用户信息、过期时间）；登出时将有效 Token 写入 Redis 黑名单，TTL 与 Token 剩余有效期一致。
+
+    \item 认证相关持久化通过 \texttt{UserMapper}、\texttt{AdminMapper} 访问 MySQL 完成用户/管理员账号的查询与注册插入；Token 的生成与解析由 \texttt{TokenProvider} 完成，不经过业务 Mapper。
+
+    \item 注册、登录、登出的执行结果沿 Service、Controller 返回 JSON。登录成功时前端将 Token 存入本地（如 Pinia/本地存储），并在后续 Axios 拦截器中自动附加 \texttt{Authorization: Bearer} 请求头。
+
+    \item 前端根据响应更新页面：注册/登录成功后跳转至业务页；登出成功后清除本地 Token 并返回登录页，完成认证闭环。
+\end{enumerate}
+
+\SeqPdfFigure{figs/sequence/seq-auth.pdf}{登录认证时序图}{fig:seq-auth}
+
+\subsection{常规业务请求}
+
+登录后的同步 HTTP 业务（不含代码提交判题与在线运行）均经 \texttt{JwtAuthenticationFilter} 校验 JWT，再进入对应 Controller $\rightarrow$ Service $\rightarrow$ Mapper 访问 MySQL；题库读操作可经 Redis 缓存。以下按角色分述。
+
+\subsubsection{普通用户}
+
+包括浏览题库、查看题目详情、查询与修改个人账号信息等。
+
+\begin{enumerate}
+    \item 用户在题库页、题目详情页或个人中心与 Vue 交互，Axios 调用 \texttt{/api/problems/**}、\texttt{/api/user/**}，请求头携带 USER 角色的 JWT。
+
+    \item \texttt{JwtAuthenticationFilter} 校验 Token 后，请求分发至 \texttt{ProblemController} 或 \texttt{UserController}，完成参数校验。
+
+    \item \texttt{ProblemService} 处理列表与详情：优先读 Redis 缓存 \texttt{problem:list}、\texttt{problem:id:...}，未命中则查库并回写 TTL；详情可附带当前用户在该题下的最近提交记录。
+
+    \item \texttt{UserService} 处理 \texttt{/api/user/me}、修改邮箱与密码：查重、校验旧密码后通过 \texttt{UserMapper} 更新 MySQL。
+
+    \item 结果沿 Mapper、Service、Controller 返回 JSON，前端更新列表、详情或个人资料展示。
+\end{enumerate}
+
+\SeqPdfFigure{figs/sequence/seq-regular-user.pdf}{普通用户常规业务时序图}{fig:seq-regular-user}
+
+\subsubsection{系统管理员}
+
+包括题目与测试用例维护、用户列表与重置密码、提交记录查询等；访问 \texttt{/api/admin/**} 须 ADMIN 角色。
+
+\begin{enumerate}
+    \item 管理员在后台页面操作，Axios 调用 \texttt{/api/problems/**}（写操作）、\texttt{/api/testcase/**}、\texttt{/api/admin/users/**}、\texttt{/api/admin/submissions/**}，携带 ADMIN 角色的 JWT。
+
+    \item 过滤器校验通过后进入 \texttt{ProblemController}、\texttt{TestCaseController}、\texttt{AdminController}、\texttt{AdminSubmissionController} 等。
+
+    \item 题目增删改由 \texttt{ProblemService} 写库并清理 Redis 题目缓存；删题时级联删除提交记录与测试用例。测试用例由 \texttt{TestCaseService} 校验归属题目后读写 \texttt{test\_cases} 表。
+
+    \item 用户列表由 \texttt{AdminController} 直接查库；重置密码委托 \texttt{UserService}。提交分页与详情由 \texttt{AdminSubmissionService} 多表查询组装 VO。
+
+    \item JSON 响应返回管理端页面，完成列表刷新或表单反馈。
+\end{enumerate}
+
+\SeqPdfFigure{figs/sequence/seq-regular-admin.pdf}{管理员常规业务时序图}{fig:seq-regular-admin}

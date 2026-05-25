@@ -1,0 +1,42 @@
+### 1. 获取当前用户资料
+# 测试场景：普通用户查看个人资料；需先 login.http「普通用户登录」
+GET http://localhost:8080/api/user/me
+Authorization: Bearer {{userToken}}
+
+### 2. 更新邮箱
+PUT http://localhost:8080/api/user/email
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "email": "zhangsan@example.com"
+}
+
+### 3. 修改密码
+# 测试场景：修改成功后，后续登录需使用新密码；测试完可改回或重建用户
+PUT http://localhost:8080/api/user/password
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "123456",
+  "newPassword": "654321"
+}
+
+### 4. 修改密码失败 - 原密码错误
+PUT http://localhost:8080/api/user/password
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "wrong-old",
+  "newPassword": "654321"
+}
+
+### 5. 用户接口 - 管理员 Token 无权限
+# 测试场景：/api/user 要求 ROLE_USER，管理员应被拒绝
+GET http://localhost:8080/api/user/me
+Authorization: Bearer {{adminToken}}
+
+### 6. 未登录访问用户接口
+GET http://localhost:8080/api/user/me

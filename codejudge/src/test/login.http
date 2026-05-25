@@ -1,0 +1,59 @@
+### 1. 管理员登录
+# 测试场景：管理员登录成功，并将 token 写入全局变量 adminToken（供其他 .http 使用）
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456",
+  "userType": "ADMIN"
+}
+
+> {%
+  client.global.set("adminToken", response.body.token);
+%}
+
+### 2. 普通用户登录
+# 测试场景：普通用户登录；需已注册账号（可先运行 register.http）
+# 将 token 写入 userToken
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "abc",
+  "password": "123",
+  "userType": "USER"
+}
+
+> {%
+  client.global.set("userToken", response.body.token);
+%}
+
+### 3. 登录失败 - 密码错误
+# 测试场景：错误密码应返回业务错误或 401
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "wrong-password",
+  "userType": "ADMIN"
+}
+
+### 4. 登录失败 - 用户类型不匹配
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456",
+  "userType": "USER"
+}
+
+### 5. 登出（管理员）
+# 测试场景：携带有效 Token 登出；需先运行「管理员登录」
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer {{adminToken}}
+
+### 6. 登出失败 - 未携带 Token
+POST http://localhost:8080/api/auth/logout

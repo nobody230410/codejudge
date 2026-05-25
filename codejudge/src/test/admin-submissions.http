@@ -1,0 +1,29 @@
+### 1. 提交记录分页列表（管理员）
+# 测试场景：默认第 1 页、每页 15 条；需先「管理员登录」
+GET http://localhost:8080/api/admin/submissions?page=1&pageSize=15
+Authorization: Bearer {{adminToken}}
+
+### 2. 按用户名筛选
+GET http://localhost:8080/api/admin/submissions?username=zhangsan&page=1&pageSize=15
+Authorization: Bearer {{adminToken}}
+
+### 3. 按题目 id 筛选
+GET http://localhost:8080/api/admin/submissions?problemId={{problemId}}&page=1&pageSize=15
+Authorization: Bearer {{adminToken}}
+
+### 4. 按用户 id 筛选
+GET http://localhost:8080/api/admin/submissions?userId={{userId}}&page=1&pageSize=15
+Authorization: Bearer {{adminToken}}
+
+### 5. 提交记录详情（管理员）
+# 测试场景：查看单条提交详情（含代码、判题结果等）；submissionId 改为库中真实 id
+GET http://localhost:8080/api/admin/submissions/{{submissionId}}
+Authorization: Bearer {{adminToken}}
+
+### 6. 提交详情 - 不存在的 id
+GET http://localhost:8080/api/admin/submissions/999999
+Authorization: Bearer {{adminToken}}
+
+### 7. 管理端提交接口 - 普通用户无权限
+GET http://localhost:8080/api/admin/submissions?page=1
+Authorization: Bearer {{userToken}}

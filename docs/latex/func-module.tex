@@ -1,0 +1,95 @@
+% 主文件：\input{func-model}（勿用 \include）
+% 导言区：\usepackage{tikz} \usetikzlibrary{positioning,calc,arrows.meta}
+%          \usepackage{float}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    font=\normalsize,
+    root/.style={
+      draw, thick, fill=white,
+      minimum width=3.2cm, minimum height=1.05cm, align=center
+    },
+    role/.style={
+      draw, thick,
+      minimum width=1.55cm, minimum height=0.9cm, align=center
+    },
+    mod/.style={
+      draw,
+      text width=1.24cm, minimum height=0.88cm,
+      align=center, font=\footnotesize, inner sep=2pt
+    },
+    line/.style={thick},
+    conn/.style={thick}
+  ]
+    % ---------- 根与角色 ----------
+    \node[root] (root) at (0, 0) {在线判题系统\\[1pt]\footnotesize (CODE JUDGE)};
+
+    \node[role, fill=orange!15!white] (user)  at (-2.5, -1.6) {普通用户};
+    \node[role, fill=yellow!20!white] (admin) at ( 2.5, -1.6) {系统管理员};
+
+    \coordinate (hub) at (0, -0.75);
+    \draw[line] (root.south) -- (hub);
+    \draw[line] (hub) -| (user.north);
+    \draw[line] (hub) -| (admin.north);
+
+    % ---------- 普通用户：两行、横排文字 ----------
+    \def\ux{1.36}
+    \coordinate (ub1) at (-2.5, -2.85);
+    \coordinate (ub2) at (-2.5, -4.05);
+
+    \draw[line] (user.south) -- (ub1);
+    \draw[line] (ub1) -- (ub2);
+    \draw[line] ([xshift=-2*\ux cm]ub1) -- ([xshift=2*\ux cm]ub1);
+    \draw[line] ([xshift=-2*\ux cm]ub2) -- ([xshift=2*\ux cm]ub2);
+
+    \def\uy{0.58}
+    \node[mod, fill=orange!10!white] (um1)  at ([xshift={-2*\ux cm},yshift=-\uy cm]ub1) {注册};
+    \node[mod, fill=orange!10!white] (um2)  at ([xshift={-1*\ux cm},yshift=-\uy cm]ub1) {登录};
+    \node[mod, fill=orange!10!white] (um3)  at ([yshift=-\uy cm]ub1)                 {登出};
+    \node[mod, fill=orange!10!white] (um4)  at ([xshift={1*\ux cm},yshift=-\uy cm]ub1) {浏览\\题库};
+    \node[mod, fill=orange!10!white] (um5)  at ([xshift={2*\ux cm},yshift=-\uy cm]ub1) {查看\\题目};
+
+    \node[mod, fill=orange!10!white] (um6)  at ([xshift={-2*\ux cm},yshift=-\uy cm]ub2) {代码提交\\判题};
+    \node[mod, fill=orange!10!white] (um7)  at ([xshift={-1*\ux cm},yshift=-\uy cm]ub2) {在线\\运行};
+    \node[mod, fill=orange!10!white] (um8)  at ([yshift=-\uy cm]ub2)                 {个人\\信息};
+    \node[mod, fill=orange!10!white] (um9)  at ([xshift={1*\ux cm},yshift=-\uy cm]ub2) {修改\\邮箱};
+    \node[mod, fill=orange!10!white] (um10) at ([xshift={2*\ux cm},yshift=-\uy cm]ub2) {修改\\密码};
+
+    \foreach \i in {1,...,5} {
+      \draw[conn] (ub1 -| um\i.north) -- (um\i.north);
+    }
+    \foreach \i in {6,...,10} {
+      \draw[conn] (ub2 -| um\i.north) -- (um\i.north);
+    }
+
+    % ---------- 系统管理员 ----------
+    \coordinate (ab1) at (2.5, -2.85);
+    \coordinate (ab2) at (2.5, -4.05);
+
+    \draw[line] (admin.south) -- (ab1);
+    \draw[line] (ab1) -- (ab2);
+    \draw[line] ([xshift=-1.5*\ux cm]ab1) -- ([xshift=1.5*\ux cm]ab1);
+    \draw[line] ([xshift=-1.5*\ux cm]ab2) -- ([xshift=1.5*\ux cm]ab2);
+
+    \node[mod, fill=yellow!16!white] (am1) at ([xshift={-1.5*\ux cm},yshift=-\uy cm]ab1) {登录};
+    \node[mod, fill=yellow!16!white] (am2) at ([xshift={-0.5*\ux cm},yshift=-\uy cm]ab1) {登出};
+    \node[mod, fill=yellow!16!white] (am3) at ([xshift={0.5*\ux cm},yshift=-\uy cm]ab1) {题目\\管理};
+    \node[mod, fill=yellow!16!white] (am4) at ([xshift={1.5*\ux cm},yshift=-\uy cm]ab1) {测试用例\\管理};
+
+    \node[mod, fill=yellow!16!white] (am5) at ([xshift={-1.5*\ux cm},yshift=-\uy cm]ab2) {用户\\列表};
+    \node[mod, fill=yellow!16!white] (am6) at ([xshift={-0.5*\ux cm},yshift=-\uy cm]ab2) {重置\\密码};
+    \node[mod, fill=yellow!16!white] (am7) at ([xshift={0.5*\ux cm},yshift=-\uy cm]ab2) {提交\\列表};
+    \node[mod, fill=yellow!16!white] (am8) at ([xshift={1.5*\ux cm},yshift=-\uy cm]ab2) {提交\\详情};
+
+    \foreach \i in {1,...,4} {
+      \draw[conn] (ab1 -| am\i.north) -- (am\i.north);
+    }
+    \foreach \i in {5,...,8} {
+      \draw[conn] (ab2 -| am\i.north) -- (am\i.north);
+    }
+
+  \end{tikzpicture}
+  \caption{功能模块图}
+  \label{fig:func-module}
+\end{figure}

@@ -1,0 +1,63 @@
+@startuml seq-submission-judge
+hide footbox
+scale max 1500 width
+scale max 2200 height
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+title 代码提交与判题（异步全链路）
+
+actor "普通用户" as Client
+participant "SubmissionController" as Ctl
+participant "SubmissionService" as SubSvc
+participant "SubmissionMapper" as SubMapper
+participant "ProblemService" as ProbSvc
+participant "JudgeService" as JudgeSvc
+participant "TestCaseService" as TcSvc
+queue "RabbitMQ" as MQ
+participant "JudgeRequestListener" as JReq
+participant "Envoy 判题服务" as Envoy
+participant "JudgeResultListener" as JRes
+participant "SubmissionWebSocketHandler" as WS
+database "MySQL" as DB
+
+note over Client, Ctl : JWT 鉴权；管理员角色禁止提交
+
+== 提交阶段（同步） ==
+
+Client -> WS : WebSocket 连接 /ws/submission/{submissionId}
+Client -> Ctl : POST /api/submission\n(code, language, problemId)
+
+Ctl -> SubSvc : submit(...)
+SubSvc -> SubMapper : insert submission\nstatus = waiting
+SubMapper -> DB : INSERT
+DB --> SubSvc : submissionId
+SubSvc -> ProbSvc : invalidateProblemDetailCaches
+SubSvc -> JudgeSvc : judge(problemId, code, language, id)
+
+JudgeSvc -> TcSvc : getTestCaseListByProblemId
+TcSvc -> DB : SELECT test_cases
+JudgeSvc -> MQ : 发布 JudgeRequest
+JudgeSvc --> SubSvc : void
+SubSvc --> Ctl : submissionId
+Ctl --> Client : 200 返回提交 id
+
+== 判题阶段（异步） ==
+
+MQ -> JReq : 消费判题请求
+JReq -> Envoy : POST /judge
+Envoy --> JReq : JudgeResponse
+
+alt 判题服务异常
+  JReq -> MQ : 发布错误 Verdict
+else 判题成功
+  JReq -> MQ : 发布 JudgeResponse
+end
+
+MQ -> JRes : 消费判题结果
+JRes -> SubSvc : update(JudgeResult, submissionId)
+SubSvc -> SubMapper : UPDATE status, time, memory
+SubMapper -> DB : UPDATE
+JRes -> WS : pushJudgeResult(submissionId, result)
+WS --> Client : WebSocket 推送判题结果
+
+@enduml

@@ -1,0 +1,63 @@
+### 1. 按题目查询测试用例列表（管理员）
+# 测试场景：获取某题全部测例；需先「管理员登录」
+GET http://localhost:8080/api/testcase/problem/{{problemId}}
+Authorization: Bearer {{adminToken}}
+
+### 2. 批量创建测试用例（管理员）
+# 测试场景：为题目新增测例，返回新建 id 列表；problemId 改为实际题目 id
+POST http://localhost:8080/api/testcase/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "testCaseList": [
+    {
+      "problemId": {{problemId}},
+      "input": "1 2\n",
+      "output": "3\n"
+    },
+    {
+      "problemId": {{problemId}},
+      "input": "100 200\n",
+      "output": "300\n"
+    }
+  ]
+}
+
+> {%
+  if (response.status === 200 && response.body.testCaseList && response.body.testCaseList.length > 0) {
+    client.global.set("testCaseId", String(response.body.testCaseList[0]));
+  }
+%}
+
+### 3. 更新测试用例（管理员）
+# 测试场景：修改指定测例输入输出；testCaseId、problemId 需为库中真实值
+PUT http://localhost:8080/api/testcase/{{testCaseId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "problemId": {{problemId}},
+  "input": "3 4\n",
+  "output": "7\n"
+}
+
+### 4. 创建测例失败 - 普通用户无权限
+POST http://localhost:8080/api/testcase/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "testCaseList": [
+    {
+      "problemId": 1,
+      "input": "1\n",
+      "output": "1\n"
+    }
+  ]
+}
+
+### 5. 删除测试用例（管理员）
+# 测试场景：删除单个测例；请使用测试专用 testCaseId
+DELETE http://localhost:8080/api/testcase/{{testCaseId}}
+Authorization: Bearer {{adminToken}}

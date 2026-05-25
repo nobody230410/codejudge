@@ -1,0 +1,47 @@
+@startuml seq-code-run
+hide footbox
+scale max 1500 width
+scale max 2000 height
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+title 代码在线运行（异步全链路）
+
+actor "登录用户" as Client
+participant "RunController" as Ctl
+participant "CodeRunService" as RunSvc
+queue "RabbitMQ" as MQ
+participant "RunRequestListener" as RunReq
+participant "Envoy 运行服务" as Envoy
+participant "RunResultListener" as RunRes
+participant "CodeRunWebSocketHandler" as WS
+
+note over Client, Ctl : JWT 鉴权；与判题链路独立
+
+== 提交运行（同步） ==
+
+Client -> WS : WebSocket 连接 /ws/run/{runId}
+Client -> Ctl : POST /api/run\n(code, language, stdin, runId?)
+
+Ctl -> RunSvc : enqueue(CodeRunRequest)
+RunSvc -> RunSvc : 生成或校验 runId
+RunSvc -> MQ : CodeRunQueueMessage
+RunSvc --> Ctl : CodeRunAcceptedResponse(runId)
+Ctl --> Client : 200 返回 runId
+
+== 执行阶段（异步） ==
+
+MQ -> RunReq : 消费运行请求
+RunReq -> Envoy : POST /run
+Envoy --> RunReq : CodeRunResponse
+
+alt HTTP 或执行失败
+  RunReq -> MQ : CodeRunQueueResult(error)
+else 成功
+  RunReq -> MQ : CodeRunQueueResult(response)
+end
+
+MQ -> RunRes : 消费运行结果
+RunRes -> WS : pushRunResult(runId, message)
+WS --> Client : WebSocket 推送 stdout / stderr
+
+@enduml

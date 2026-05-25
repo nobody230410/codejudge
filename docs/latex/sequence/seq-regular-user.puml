@@ -1,0 +1,69 @@
+@startuml seq-regular-user
+hide footbox
+scale max 1500 width
+scale max 2000 height
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+title 常规业务请求 — 普通用户
+
+actor "普通用户" as Client
+participant "JwtAuthenticationFilter" as JWT
+participant "TokenProvider" as Token
+participant "ProblemController" as ProbCtl
+participant "ProblemService" as ProbSvc
+participant "UserController" as UserCtl
+participant "UserService" as UserSvc
+database "Redis" as Redis
+database "MySQL" as DB
+
+note over Client, DB : 请求头携带 Bearer JWT，角色 USER
+
+== JWT 鉴权 ==
+
+Client -> JWT : HTTP + Bearer
+JWT -> Token : validateToken / getUsername
+JWT -> DB : loadUserByUsername
+JWT -> ProbCtl : filterChain
+
+== 题库浏览 ==
+
+alt GET /api/problems/list
+  Client -> ProbCtl : 题库列表
+  ProbCtl -> ProbSvc : getProblemList()
+  ProbSvc -> Redis : GET problem:list
+  alt 缓存未命中
+    ProbSvc -> DB : SELECT problems
+    ProbSvc -> Redis : SET problem:list (TTL)
+  end
+else GET /api/problems/{id}
+  Client -> ProbCtl : 题目详情
+  ProbCtl -> ProbSvc : getProblemById(userId, id)
+  ProbSvc -> Redis : GET 详情缓存
+  alt 缓存未命中
+    ProbSvc -> DB : SELECT problem\n+ 最近 submission（可选）
+    ProbSvc -> Redis : SET 详情缓存 (TTL)
+  end
+end
+ProbCtl --> Client : 200 / 404
+
+== 个人账号 ==
+
+alt GET /api/user/me
+  Client -> UserCtl : 查询个人信息
+  UserCtl -> UserSvc : getProfile(userId)
+  UserSvc -> DB : SELECT user
+  UserCtl --> Client : 200
+else PUT /api/user/email
+  Client -> UserCtl : 修改邮箱
+  UserCtl -> UserSvc : updateEmail
+  UserSvc -> DB : 邮箱查重 / UPDATE
+  UserCtl --> Client : 200 / 邮箱占用
+else PUT /api/user/password
+  Client -> UserCtl : 修改密码
+  UserCtl -> UserSvc : changePassword
+  UserSvc -> DB : 校验旧密码 / UPDATE
+  UserCtl --> Client : 200 / 原密码错误
+end
+
+@enduml

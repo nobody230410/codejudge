@@ -1,0 +1,66 @@
+### 1. 题目列表
+# 测试场景：获取全部题目列表；需先 login.http「普通用户登录」或「管理员登录」
+GET http://localhost:8080/api/problems/list
+Authorization: Bearer {{userToken}}
+
+### 2. 题目详情（普通用户）
+# 测试场景：登录用户查看题目详情；需先运行 login.http「普通用户登录」
+GET http://localhost:8080/api/problems/{{problemId}}
+Authorization: Bearer {{userToken}}
+
+### 3. 题目详情 - 不存在的题目
+GET http://localhost:8080/api/problems/999999
+Authorization: Bearer {{userToken}}
+
+### 4. 创建题目（管理员）
+# 测试场景：管理员创建题目，返回 problemId；需先「管理员登录」
+# creator 填管理员在 user 表中的 id（通常为 1）
+POST http://localhost:8080/api/problems/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "A+B Problem",
+  "description": "给定两个整数，输出它们的和。",
+  "difficulty": "EASY",
+  "creator": 1,
+  "timeLimit": 2.0,
+  "memoryLimit": 262144
+}
+
+> {%
+  if (response.status === 200 && typeof response.body === "number") {
+    client.global.set("problemId", String(response.body));
+  }
+%}
+
+### 5. 更新题目（管理员）
+# 测试场景：更新指定题目；problemId 可用上一步创建返回值或 http-client.env.json
+PUT http://localhost:8080/api/problems/{{problemId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "A+B Problem（修订）",
+  "description": "输入两个整数 a、b，输出 a+b。",
+  "difficulty": "MIDDLE",
+  "timeLimit": 3.0,
+  "memoryLimit": 524288
+}
+
+### 6. 创建题目失败 - 普通用户无权限
+POST http://localhost:8080/api/problems/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "title": "非法创建",
+  "description": "test",
+  "difficulty": "EASY",
+  "creator": 2
+}
+
+### 7. 删除题目（管理员）
+# 测试场景：删除题目；请使用测试专用题目 id，避免删除正式数据
+DELETE http://localhost:8080/api/problems/{{problemId}}
+Authorization: Bearer {{adminToken}}

@@ -1,0 +1,74 @@
+@startuml seq-regular-admin
+hide footbox
+scale max 1500 width
+scale max 2200 height
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+title 常规业务请求 — 系统管理员
+
+actor "管理员" as Admin
+participant "JwtAuthenticationFilter" as JWT
+participant "TokenProvider" as Token
+participant "ProblemController" as ProbCtl
+participant "ProblemService" as ProbSvc
+participant "TestCaseController" as TcCtl
+participant "TestCaseService" as TcSvc
+participant "AdminController" as AdmCtl
+participant "UserService" as UserSvc
+participant "AdminSubmissionController" as SubCtl
+participant "AdminSubmissionService" as SubSvc
+database "Redis" as Redis
+database "MySQL" as DB
+
+note over Admin, DB : Bearer JWT + ADMIN 角色；/api/admin/** 受保护
+
+== JWT 鉴权 ==
+
+Admin -> JWT : HTTP + Bearer
+JWT -> Token : validateToken
+JWT -> DB : loadUserByUsername（ADMIN）
+JWT -> ProbCtl : filterChain
+
+== 题库查询（与用户对齐） ==
+
+Admin -> ProbCtl : GET /api/problems/list 或 /{id}
+ProbCtl -> ProbSvc : getProblemList / getProblemById
+ProbSvc -> Redis : 读缓存（同用户侧逻辑）
+ProbSvc -> DB : 未命中时 SELECT
+ProbCtl --> Admin : 200
+
+== 题目与测试用例管理 ==
+
+alt 题目 POST/PUT/DELETE /api/problems/**
+  Admin -> ProbCtl : 增删改题目
+  ProbCtl -> ProbSvc : create / update / delete
+  ProbSvc -> DB : INSERT / UPDATE / DELETE\n（删题级联 submission、testcase）
+  ProbSvc -> Redis : 清理题目列表与详情缓存
+  ProbCtl --> Admin : 200 / 404
+else 测试用例 /api/testcase/**
+  Admin -> TcCtl : create / list / update / delete
+  TcCtl -> TcSvc : 校验题目归属
+  TcSvc -> DB : 读写 test_cases
+  TcCtl --> Admin : 200 / 参数错误
+end
+
+== 用户与提交管理 ==
+
+alt GET /api/admin/users
+  Admin -> AdmCtl : 用户列表
+  AdmCtl -> DB : SELECT user
+  AdmCtl --> Admin : 200
+else PUT /api/admin/users/{id}/password
+  Admin -> AdmCtl : 重置密码
+  AdmCtl -> UserSvc : resetPasswordByAdmin
+  UserSvc -> DB : UPDATE password
+  AdmCtl --> Admin : 200 / 用户不存在
+else /api/admin/submissions/**
+  Admin -> SubCtl : 分页列表 / 详情
+  SubCtl -> SubSvc : pageSubmissions / getDetail
+  SubSvc -> DB : SELECT submission\n关联 user、problem
+  SubCtl --> Admin : 200 / 404
+end
+
+@enduml

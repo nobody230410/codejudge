@@ -1,0 +1,21 @@
+### 1. 用户列表（管理员）
+# 测试场景：查看全部注册用户；需先 login.http「管理员登录」
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{adminToken}}
+
+### 2. 重置用户密码（管理员）
+# 测试场景：管理员重置指定用户密码；userId 改为实际用户 id
+PUT http://localhost:8080/api/admin/users/{{userId}}/password
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "newPassword": "123456"
+}
+
+### 3. 管理接口 - 普通用户无权限
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{userToken}}
+
+### 4. 未登录访问管理接口
+GET http://localhost:8080/api/admin/users

@@ -1,0 +1,152 @@
+/**
+ * 管理员会话下由 MainLayout 为 documentElement 添加 class `admin-app`。
+ * 用于 teleport 到 body 的弹层（Dialog、MessageBox、分页等），与深色布局一致。
+ */
+html.admin-app {
+  color-scheme: dark;
+}
+
+html.admin-app .el-overlay-dialog .el-dialog {
+  background: rgba(34, 34, 40, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+html.admin-app .el-dialog__header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.admin-app .el-dialog__title {
+  color: #f0f0f4;
+}
+
+html.admin-app .el-dialog__body {
+  color: #e0e0e8;
+}
+
+html.admin-app .el-dialog__footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.admin-app .el-dialog .el-form-item__label {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+html.admin-app .el-dialog .el-input__wrapper {
+  background: rgba(18, 18, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+
+html.admin-app .el-dialog .el-input__wrapper:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+html.admin-app .el-dialog .el-input__wrapper.is-focus {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+html.admin-app .el-dialog .el-input__inner {
+  color: #f2f2f6;
+}
+
+html.admin-app .el-dialog .el-input__inner::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+html.admin-app .el-dialog .el-textarea__inner {
+  background: rgba(18, 18, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f2f2f6;
+  box-shadow: none;
+}
+
+html.admin-app .el-dialog .el-textarea__inner:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+html.admin-app .el-dialog .el-textarea__inner:focus {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+html.admin-app .el-dialog .el-select .el-input__wrapper {
+  background: rgba(18, 18, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+html.admin-app .el-message-box {
+  background: rgba(34, 34, 40, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+html.admin-app .el-message-box__title {
+  color: #f0f0f4;
+}
+
+html.admin-app .el-message-box__content {
+  color: #d0d0d8;
+}
+
+html.admin-app .el-message-box__message {
+  color: #d0d0d8;
+}
+
+html.admin-app .el-message-box__headerbtn .el-message-box__close {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+html.admin-app .el-pagination.is-background .el-pager li {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+html.admin-app .el-pagination.is-background .el-pager li.is-active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+html.admin-app .el-pagination.is-background .btn-prev,
+html.admin-app .el-pagination.is-background .btn-next {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+html.admin-app .el-pagination__total {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+html.admin-app .el-loading-mask {
+  background-color: rgba(18, 18, 22, 0.65);
+}
+
+html.admin-app .el-loading-text {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+html.admin-app .el-dialog__footer .el-button--primary {
+  --el-button-bg-color: #e8e8ee;
+  --el-button-border-color: #e8e8ee;
+  --el-button-text-color: #1a1a1e;
+  --el-button-hover-bg-color: #ffffff;
+  --el-button-hover-border-color: #ffffff;
+  --el-button-hover-text-color: #121216;
+}
+
+html.admin-app .el-dialog__footer .el-button.is-plain,
+html.admin-app .el-dialog__footer .el-button--default:not(.el-button--primary) {
+  --el-button-bg-color: rgba(255, 255, 255, 0.08);
+  --el-button-border-color: rgba(255, 255, 255, 0.22);
+  --el-button-text-color: rgba(255, 255, 255, 0.88);
+  --el-button-hover-bg-color: rgba(255, 255, 255, 0.14);
+  --el-button-hover-border-color: rgba(255, 255, 255, 0.32);
+  --el-button-hover-text-color: #ffffff;
+}
+
+html.admin-app .el-message-box__btns .el-button--primary {
+  --el-button-bg-color: #e8e8ee;
+  --el-button-border-color: #e8e8ee;
+  --el-button-text-color: #1a1a1e;
+  --el-button-hover-bg-color: #ffffff;
+  --el-button-hover-border-color: #ffffff;
+}

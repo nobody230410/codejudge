@@ -1,0 +1,28 @@
+### 1. 用户注册接口
+# 测试场景：注册一个新的普通用户
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "zhangsan",
+  "password": "123456"
+}
+
+### 2. 注册异常测试 - 用户名重复
+# 测试场景：再次运行上面的请求，应该返回 "用户名已被注册" 的错误
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "zhangsan",
+  "password": "123456"
+}
+
+### 3. 注册异常测试 - 参数缺失
+# 测试场景：不传密码，测试后端校验（如果有校验的话）
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "lisi"
+}
